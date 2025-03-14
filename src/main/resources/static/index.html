@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee CRUD</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body onload = "loadEmp() ">
+    <div class="container">
+        <h1>Employee Management System</h1>
+
+        <div class="form-container">
+            <form id="employeeForm">
+			<!-- 1.The hidden input field is used to store the ID of the employee being edited. 
+				Since the employee ID is not something that users need to see or edit directly, 
+				it's hidden from the view.-->
+			<!-- 2.When updating or deleting an employee, 
+			the system needs to know which specific record to modify or remove. 
+			The employee ID, stored in this hidden input, provides this unique identifier.-->
+                <input type="hidden" id="employeeId"> <!--Contains a form for employee details (#employeeForm) with hidden input for employee ID.-->
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="salary">Salary:</label>
+                    <input type="number" id="salary" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Addres:</label>
+                    <input type="text" id="address" required>
+                </div>
+                <button type="button" onclick="saveEmployee()">Save</button>
+            </form>
+        </div>
+
+        <div class="employee-list">
+            <h2>Employees</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Salary</th>
+                        <th>Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+			
+	 document.addEventListener("DOMContentLoaded", function()
+	  { 
+		  loadEmp(); 
+		});
+	
+	
+	// whether to create a new employee or update an existing one.
+	function saveEmployee() {
+	     const employeeId = document.getElementById('employeeId').value;
+            const formData = {
+                name: document.getElementById('name').value,
+                salary: document.getElementById('salary').value,
+                address: document.getElementById('address').value
+            };
+ 
+            if (employeeId) {
+                updateEmployee(employeeId, formData);
+            } else {
+                createEmployee(formData);
+            }
+        }
+	
+	//post  : below function has parameter called fromdata which is is an object that will store data for new emppp
+	// Sends a POST request to create a new employee.
+	function createEmployee(formData) {
+		$.ajax({
+              	type: 'POST',
+                contentType : 'application/json',
+                url:'/api/empsave', 
+                data : JSON.stringify(formData),
+                dataType:'json',
+                success: function(data) {
+	            console.log("Employee created:", data);
+	            loadEmp();
+	            resetForm();
+	            },
+                 error: function() {
+	            alert("Error saving data...");
+	        }
+         });
+      }
+            
+    
+	//Get all : Fetches and displays all employees.
+//It constructs a string (d) containing the HTML for each table row (<tr>), with employee details inserted into the cells (<td>)
+	function loadEmp() {
+		$.ajax({
+              	type: 'GET',
+                contentType : 'application/json',
+                url:'/api/allemp', 
+                //data : JSON.stringify(formData),
+                dataType:'json',
+            success: function(data) {
+				console.log(data);
+	            let d = '';
+	            for (let i = 0; i < data.length; i++) {
+					d += '<tr>' +
+	                    '<td>' + data[i].id + '</td>' +
+	                    '<td>' + data[i].name + '</td>' +
+	                    '<td>' + data[i].salary + '</td>' +
+	                    '<td>' + data[i].address + '</td>' +
+	                    '<td>' +
+	                    '<button onclick="editEmployee(' + data[i].id + ')">Edit</button> | ' +
+	                    '<button onclick="deleteEmployee(' + data[i].id + ')">Delete</button>' +
+	                    '</td>' +
+	                    '</tr>';
+	              }
+                //innerHTML of employeeTableBody is set to this constructed string, 
+                //effectively inserting the rows into the table.
+                document.getElementById('employeeTableBody').innerHTML = d;
+            },
+            	error: function() {
+	            alert("Error loading data...");
+	              }
+            });
+        }
+	//get : fetch data or  Fetches and populates the form with an employee's data for editing.
+	//This id represents the unique identifier of the employee whose data you want to edit.
+	function editEmployee(id) {
+		//${id} dynamically inserts the employee's ID into the URL.
+            $.ajax({
+	        type: "GET", 
+	        contentType: "application/json", 
+	       //this sets the URL endpoint for the AJAX request. 
+	       //It appends the id parameter to the /api/emp/{id} endpoint, 
+	       //which will be used by the server to identify the specific employee whose data is being requested.
+	        url: '/api/emp/' + id,
+	        dataType: 'json', //This specifies that the expected response from the server will be in JSON format.
+	        success: function(data) {
+				//Inside the success callback, these lines populate the form fields with the data retrieved from the server:
+				//Sets the value of the element with the id employeeId to data.id.
+                document.getElementById('employeeId').value = data.id;
+                //This part of the code selects the HTML element with the id attribute set to 'employeeId'
+                //The .value property is used to get or set the current value of the selected element. 
+                //When used on an input> element, it refers to the content within the input field.
+                //This refers to the id property of the data object that was retrieved from the server. 
+                //The data object represents the employee data received from the server in JSON format, 
+                //and data.id specifically refers to the employee's unique identifier.
+                document.getElementById('name').value = data.name;
+                document.getElementById('salary').value = data.salary;
+                document.getElementById('address').value = data.address;
+            },
+            error: function() {
+	            alert("Error fetching data...");
+	            }
+	    });
+	} 
+	//update data : Sends a PUT request to update an employee's data
+	function updateEmployee(id, formData) {
+           $.ajax({
+	        type: "PUT",
+	        contentType: "application/json",
+	        url: '/api/empupdate/' + id,
+	        data: JSON.stringify(formData),
+	        dataType: 'json',
+	        success: function(data) {
+			 //to displat the messaege and return data on console
+                console.log("Employee Updated:", data);
+               //here loadEmp is refreshig the list ofo empp on the page
+                loadEmp();
+                //responsible to clear fieldss data from the form
+                resetForm();
+           },
+	        error: function() {
+				//if the callback func fails this msg is  displayed
+	            alert("Error updating data..."); 
+	        }
+	    });
+	}
+	     //delete data:Sends a DELETE request to remove an employee.
+	function deleteEmployee(id) {
+            if (confirm("Want to delete the employee?")) {
+                $.ajax({
+	            type: "DELETE",
+	            contentType: "application/json",
+	            url: '/api/empdelete/' + id,
+	            dataType: 'json',
+                success: function(data) {
+	                console.log("Employee Deleted :", data);
+	                loadEmp();
+	            },
+	            error: function() {
+	                alert("Error deleting data...");
+	            }
+	        });
+	    }
+	}
+       // Clears the form inputs.
+        function resetForm() {
+            document.getElementById('employeeForm').reset();
+            document.getElementById('employeeId').value = '';
+        }    
+	</script>
+
+</body>
+</html>
