@@ -1,7 +1,7 @@
 ![emp_ss](https://github.com/user-attachments/assets/e3fcf29d-7879-4090-8a67-887f0cf29ace)
 
 Employee Managemnet Crud Operation:
-
+Technologies used are : Java, SQL, Sprig-Boot, Ajax, Bootstrap.
 1.Prerequisites:
 Before starting the project, make sure you have the following installed:
 
