@@ -34,11 +34,12 @@ Dependencies to add:
 5. Create Service Layer
 6. Create REST Controller
 7. Frontend (HTML + jQuery/ajax + Bootstrap)
+8. Hit this Url in Browser: http://localhost:8080/student
 
             Run the Project: Start MySQL Server.
             Open a terminal in your project folder and run:  mvn spring-boot:run
             Open http://localhost:8080 in your browser.
-8.Push to GitHub
+9.Push to GitHub
 
         git init
         git add .
@@ -46,3 +47,4 @@ Dependencies to add:
         git branch -M main
         git remote add origin https://github.com/yourusername/projectname.git
         git push -u origin main
+
